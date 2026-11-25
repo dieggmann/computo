@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Música para Anxo</title>
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: #111827;
+        color: #f9fafb;
+      }
+      body {
+        margin: 0;
+        max-width: 640px;
+        margin-inline: auto;
+        padding: 16px;
+      }
+      h1 {
+        font-size: 1.4rem;
+        margin: 8px 0 16px;
+      }
+      #buscar {
+        width: 100%;
+        box-sizing: border-box;
+        background: #1f2937;
+        color: #f9fafb;
+        border: 1px solid #4b5563;
+        border-radius: 8px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        font-size: 1rem;
+      }
+      #buscar:focus {
+        outline: 2px solid #6b7280;
+        border-color: transparent;
+      }
+      #sin-resultados {
+        color: #9ca3af;
+        padding: 16px 4px;
+      }
+      .album {
+        display: flex;
+        align-items: flex-start;
+        width: 100%;
+        text-align: left;
+        background: none;
+        color: inherit;
+        border: none;
+        border-bottom: 1px solid #374151;
+        padding: 10px 4px;
+        margin: 0;
+        font-size: 1rem;
+        cursor: pointer;
+      }
+      .album:active {
+        background: #1f2937;
+      }
+      .album .num {
+        color: #9ca3af;
+        flex: none;
+        min-width: 34px;
+      }
+      .album .txt {
+        flex: 1;
+        min-width: 0;
+      }
+      .album .nombre,
+      .album .hint {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      .album .artista {
+        color: #9ca3af;
+      }
+      .album.fav .titulo {
+        color: #fbbf24;
+        font-weight: 600;
+      }
+      .album.fav .titulo::before {
+        content: "★ ";
+      }
+      #album-title.fav {
+        color: #fbbf24;
+      }
+      .album .hint {
+        margin-top: 2px;
+        font-size: 0.85rem;
+        color: #9ca3af;
+      }
+      .track {
+        display: flex;
+        gap: 12px;
+        padding: 12px 8px;
+        border-bottom: 1px solid #374151;
+      }
+      .track:last-child {
+        border-bottom: none;
+      }
+      .track .num {
+        color: #9ca3af;
+        min-width: 24px;
+      }
+      #back {
+        background: none;
+        border: 1px solid #4b5563;
+        color: #f9fafb;
+        border-radius: 8px;
+        padding: 8px 16px;
+        margin-bottom: 16px;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ============================================================
+         EDITA AQUÍ: añade, quita o cambia discos y pistas.
+         Solo toca el texto entre comillas. Nada más.
+         FAVORITO: para marcar un disco como favorito, añade la línea
+         favorito: true,   justo debajo de la línea artista: "...",
+         (para quitarlo, borra esa línea).
+         ============================================================ -->
+    <script>
+      const discos = [
+        {
+          titulo: "Máis contos en cantos",
+          artista: "Almudena Janeiro",
+          pistas: [
+            "Chocolata",
+            "A mellor sopa do mundo",
+            "A voda do Galo Pinto",
+            "A máscara do león",
+            "Cocorico",
+            "A figueira de Pelostortos",
+            "Maruxa",
+            "Carabuñas",
+            "Picurruchos",
+            "A princesa do Caurel",
+            "Chega un avión!",
+            "Corre corre, cabaciña",
+            "Nariz de ouro",
+          ],
+        },
+        {
+          titulo: "Te, Chocolate, Cafe",
+          artista: "Golfiños",
+          pistas: [
+            "Bo día",
+            "Té, chocolate, café",
+            "Adiviñas",
+            "Peixe salmonete",
+            "Bru bri bré",
+            "Rosiña",
+            "A selva",
+            "Fíos",
+            "O sorriso de Daniela",
+            "Durme, durme",
+            "Martes",
+            "Cinco patiños",
+            "A xaneliña",
+            "Aburiño",
+          ],
+        },
+        {
+          titulo: "A nena e o grilo",
+          artista: "Magín Blanco",
+          pistas: [
+            "Rumba das apertas",
+            "O meu país",
+            "Facer unha canción",
+            "Nena menciñeira",
+            "Nena botánica",
+            "Aquí en baixo (é todo azul)",
+            "Cri Cri",
+            "Era festa",
+            "Ten o demo",
+            "Vou do revés",
+            "Arco da vella",
+            "Quen son",
+            "Camiño das estrelas",
+          ],
+        },
+        {
+          titulo: "Gatuxo",
+          artista: "Magín Blanco",
+          pistas: [
+            "Tambor",
+            "Din don",
+            "Ven",
+            "Leite con mel",
+            "Doce",
+            "A risa",
+            "Gatuxo",
+            "Cucú",
+            "Auga",
+            "A culler",
+            "Xogos",
+            "Maxia",
+            "A lúa",
+            "Tacatá",
+            "A caixa",
+            "Anemone de mar",
+          ],
+        },
+        {
+          titulo: "O barquinho",
+          artista: "Magín Blanco",
+          pistas: [
+            "Don Ramón",
+            "Voga voga",
+            "Todos somos capitáns",
+            "A formiga Lúa",
+            "Meu amor estoupa",
+            "María e a poesía",
+            "Happy",
+            "O rocanrol dragón",
+            "Adiviña",
+            "Tris tras tres",
+            "Nomes, verbos e adxetivos",
+            "A nana da avoa",
+            "Soñar",
+          ],
+        },
+        {
+          titulo: "Canta o cuco",
+          artista: "Magín Blanco e Uxía",
+          pistas: [
+            "O río o mar",
+            "Poemiña para namorar unha rosa",
+            "A vaca",
+            "O lar",
+            "O meu cuarto",
+            "A roda roda",
+            "Traballos de todo o ano",
+            "O carro",
+            "A cidade",
+            "O cuco",
+            "Amo esta terra",
+            "Todo me fala de ti",
+            "Dorna",
+            "Panxoliña da neve",
+            "Galiza",
+          ],
+        },
+        {
+          titulo: "Cantar e bailar para ser máis feliz",
+          artista: "María Fumaça",
+          pistas: [
+            "Alegría",
+            "Que é o que ten a sopa do Nené",
+            "A bruxa Maruxa",
+            "Fun ao mercado",
+            "Señor Gato",
+            "Popu-Ruí",
+            "A lenga-lenga do Xanduca",
+            "O semáforo",
+            "Que baile con quen",
+            "O demiño Rapatú",
+            "O trenzinho do Caipira",
+            "Aniversario",
+            "Xa son maior",
+            "Bananaphone",
+            "Ten pouca diferença",
+            "Bailaches, Carolina",
+            "Tadia",
+            "Ruí e as baleas",
+            "Ir lá",
+            "Varinha de ilusão",
+            "Menina Florentina",
+            "Riso de Ruí",
+            "Valse de Ruí",
+            "María Fumaça",
+          ],
+        },
+        {
+          titulo: "Bicos de música",
+          artista: "Mama Cabra",
+          pistas: [
+            "Presentación",
+            "A miña tía",
+            "Alí Babá",
+            "Nós imos cruzar!",
+            "No baile",
+            "A primavera",
+            "No meu xardín",
+            "O tomate",
+            "Na praia dos lagartos",
+            "Bicos de música",
+            "Presentación (instrumental)",
+            "A miña tía (instrumental)",
+            "Alí Babá (instrumental)",
+            "Nós imos cruzar (instrumental)",
+            "No baile (instrumental)",
+            "A primavera (instrumental)",
+            "No meu xardín (instrumental)",
+            "O tomate (instrumental)",
+            "Na praia dos lagartos (instrumental)",
+            "Bicos de música (instrumental)",
+          ],
+        },
+        {
+          titulo: "Cantos Rodados",
+          artista: "Mama Cabra",
+          pistas: [
+            "Pola unha media lúa",
+            "Timoteo",
+            "Nunca reparas en min",
+            "Polas ruas",
+            "Un longueirón",
+            "Peixes, moluscos e crustáceos",
+            "Cantos rodados",
+            "Lonxe, ben lonxe",
+            "Poema da roupa",
+            "María Manuela",
+          ],
+        },
+        {
+          titulo: "Ola, Ola, La",
+          artista: "Mama Cabra",
+          pistas: [
+            "Ola Paco",
+            "Eu son un artista",
+            "Todo natural",
+            "Amolado",
+            "Imitar",
+            "Unha canción de buscar",
+            "Nadando sen parar",
+            "Excursión",
+            "Imos bailar",
+            "Glu, glu, glu",
+            "As mans",
+            "As mans (Beatvox)",
+            "Ola Paco (instrumental)",
+            "Eu son un artista (instrumental)",
+            "Todo natural (instrumental)",
+            "Amolado (instrumental)",
+            "Imitar (instrumental)",
+            "Unha canción de buscar (instrumental)",
+            "Nadando sen parar (instrumental)",
+            "Excursión (instrumental)",
+            "Imos bailar (instrumental)",
+            "Glu, glu, glu (instrumental)",
+            "As mans (instrumental)",
+          ],
+        },
+        {
+          titulo: "Xa me tardan",
+          artista: "Mama Cabra",
+          pistas: [
+            "O cuarto Rei Mago",
+            "Tres Reis en bicicleta",
+            "Panxoliña dos ratos",
+            "Cantamos os Reis",
+            "A luz do Nadal",
+            "Xa me tardan",
+            "Panxoliña de todo o ano",
+            "Na casa da miña avoa",
+            "Ano novo con ben veñas",
+            "Rock do bacallau con coliflor",
+            "O zapatiño",
+            "Pintan as verbas de paz",
+          ],
+        },
+        {
+          titulo: "A Bruxa Discordia",
+          artista: "Mama Cabra e Carmen Gil",
+          pistas: [
+            "Compartir é pan comido",
+            "A fada Margarida",
+            "Que guai!",
+            "A pomba Mari Paz",
+            "Á miña maneira",
+            "Do revés",
+            "Baile da paz",
+            "Beixo, abrazo e apreixón",
+            "A bruxa Carraña",
+            "Palabras máxicas",
+            "Mola cantidade!",
+            "Mamá cabra",
+          ],
+        },
+        {
+          titulo: "Cartas que veñen e van",
+          artista: "Mama C. e Susa Herrera",
+          pistas: [
+            "Casimiro, o elefante",
+            "De que cor",
+            "Coñezo un gatiño",
+            "A cor do oso polar",
+            "Buscando Papá Noel",
+            "Lobiño",
+            "O polo Pepe",
+            "Pobre Sofía",
+            "A ratiña curiosa",
+            "Mira, mira",
+          ],
+        },
+        {
+          titulo: "Todos os animais o caixón",
+          artista: "Mama C. e Susa Herrera",
+          pistas: [],
+        },
+        {
+          titulo: "Pan de millo",
+          artista: "Migallas",
+          favorito: true,
+          pistas: [
+            "Miña ''abuela manuela''",
+            "O piollo e a pulga",
+            "As actividades",
+            "Pan de millo",
+            "Os piratas limpos",
+            "O tiroliro",
+            "Campás pola paz",
+            "Unha vella tiña un can",
+            "Que cousa, cousiña é",
+            "Pinocho",
+            "O espantallo divertido",
+            "Eu teño un canciño",
+            "Rodari",
+            "O moucho",
+          ],
+        },
+        {
+          titulo: "Músicas para a Semente",
+          artista: "Alberto Maceiras",
+          pistas: [
+            "Fogo Nicolás",
+            "As estrelas",
+            "As tres comadres",
+            "Isca de aí",
+            "Canción de Nadal",
+            "Pola ponte de San Xoán",
+            "Din din don don",
+            "O favorito",
+            "O maio das Sementes",
+            "Arrolo",
+          ],
+        },
+        {
+          titulo: "Extra!!!",
+          artista: "Paco Nogueiras",
+          pistas: [
+            "Extra!",
+            "Dime por que",
+            "Bici, bicicleta",
+            "Enfadado",
+            "Superheroe, superheroína",
+            "Eco",
+            "A lingua non para",
+            "Non teño medo",
+            "Só unha canción",
+            "Para ti, parabéns",
+            "Móvete",
+            "Festa!!!",
+          ],
+        },
+        {
+          titulo: "Ramona Órbita",
+          artista: "Pakolas",
+          pistas: [
+            "Ramona Órbita",
+            "Rock da roda rota",
+            "Nai devesa",
+            "Manolo cavernario",
+            "Betume e vendas",
+            "Cabaleiros bibliotecarios",
+            "primavera dos tempos",
+            "A máquina de Ramona",
+            "Proverbio chinés",
+            "Benvidas ao futuro",
+          ],
+        },
+        {
+          titulo: "Bravas \"O rexurdir da luz\"",
+          artista: "A Gramola Gominola",
+          pistas: [
+            "Megatronca",
+            "Opaca",
+            "Doutora Xalapeño",
+            "Paz",
+            "A Banda Pica Pica",
+            "A Lebre Chouteira",
+            "A Musicana",
+            "Raiola Tarola",
+            "Superlingua",
+            "A Guerreira do Arco da Vella",
+            "Dona Trona",
+          ],
+        },
+        {
+          titulo: "Para cantar e bailar",
+          artista: "Luis Prego",
+          pistas: [
+            "O señor da serra",
+            "A xiralda",
+            "Mazarico",
+            "Río verde",
+            "Que baile con quen",
+            "O rei portugués",
+            "A carrasquiña",
+            "O esparabán",
+            "Danza das fitas",
+            "Muiñeira corrida",
+            "O paniño branco",
+            "O lambonciño",
+            "Don Melitón",
+            "Busca compaña",
+            "O bolero",
+            "O chotis",
+            "Poña aquí o seu pé",
+            "O regadiño",
+            "A vasoira",
+            "A ruliña",
+            "Tris-tras",
+            "Vai de roda en roda",
+            "O pinganiño",
+          ],
+        },
+        {
+          titulo: "Non hai berce coma o colo",
+          artista: "Paulo N. e Magoia B.",
+          pistas: [
+            "Non hai berce coma o colo",
+            "Arrolo de Domaio",
+            "Berce de Santalices",
+            "Ora, meu meniño",
+            "Berce de Bande",
+            "Berce de Xacebáns",
+            "Berce de Riós-Berce de Verín",
+            "O neno ten soniño",
+            "Berce de Viveiro",
+            "Berce do Pedro Chosco",
+            "Arrolo de Cuñás",
+            "Ven, soniño, ven",
+            "Berce de Meira",
+            "Berce de Ribeira de Piquín",
+            "Canto de berce",
+          ],
+        },
+        {
+          titulo: "Na punta do pé",
+          artista: "Pesdelán",
+          pistas: [
+            "O pingacho",
+            "Un pasodobre",
+            "O pezinho",
+            "O garutiño",
+            "A cirigoça",
+            "Valse para unha morena",
+            "O xogo da carrasquiña",
+            "Baiáo",
+            "O vello mentireiro",
+            "A caminho de Viseu",
+            "Muiñeira",
+            "A pulga na palla",
+          ],
+        },
+        {
+          titulo: "Uxía Lambona e a Banda Molona",
+          artista: "Uxía Lambona e a Banda Molona",
+          pistas: [
+            "A sinfonía de Uxía",
+            "Os Oficios",
+            "O Ghato Paco (intro)",
+            "O Ghato Paco",
+            "Esto báilase así",
+            "Rianskeira",
+            "O Canciño",
+            "A Carolina",
+          ],
+        },
+        {
+          titulo: "Estamos no verán",
+          artista: "Xoán Curiel e Charo Pita",
+          pistas: [
+            "Estamos no Verán!!",
+            "Polo Carreiro",
+            "Porc@ Brav@",
+            "Unha Canción",
+            "O Galo Chisco",
+            "A Illa",
+            "Canción para a miña avoa (Rapás, rapás...)",
+            "Teño Dúbidas",
+            "Arco da Vella",
+            "Mu!",
+            "Voume para a praia!!",
+            "A Volta ao Cole",
+          ],
+        },
+        {
+          titulo: "A cantar con Xabarín Vol. 1",
+          artista: "Xabarín Club",
+          pistas: [
+            "Somos do clube da Galega",
+            "Quero xamón!",
+            "Xabarín, xa te vin",
+            "¿A onde vas rapaz?",
+            "Socio, busca un socio",
+            "Non todo é o que parece",
+            "Xuntos e revoltos",
+            "Morcego",
+            "Xa ven o Xabarín",
+            "Non podo parar",
+            "A vida dentro dun pin",
+            "Pero que jallo é!",
+            "Xabarín contra o Doutor No",
+            "Prefiro bailar twist",
+            "Xabarín, Xabarín",
+            "Oda ó futbolín",
+            "Estou na lavadora",
+            "Xogar ó trompo, xogar ás bolas",
+            "Fin de semana",
+            "Vai sendo hora de ir para a casa",
+          ],
+        },
+        {
+          titulo: "A cantar con Xabarín Vol. 2",
+          artista: "Xabarín Club",
+          pistas: [
+            "Satélite Xabarín",
+            "Non teño diñeiro",
+            "O sacristán de Basán",
+            "O home da bicicleta",
+            "O porquiño",
+            "Fixémola boa",
+            "Ei, Xabarín",
+            "Hoxe son un punk",
+            "O can de Xan",
+            "A vida no fuciño",
+            "100% animal",
+            "Pistón",
+            "Vimos do monte",
+            "Os Galisáns",
+            "O que fai falta é amor",
+            "Superheroe",
+            "Capitán Araña",
+            "Andar de can",
+            "Aniversario",
+            "Xabaguai",
+            "¡Qué calor!",
+            "Nunca máis",
+            "Xabarín nas ondas do mar",
+            "Os novos non deben namorarse",
+          ],
+        },
+        {
+          titulo: "A cantar con Xabarín Vol. 3",
+          artista: "Xabarín Club",
+          pistas: [
+            "Milladorio e Pilocha - Se ti vira",
+            "Gaiteiros de Lisboa - Chula gaite",
+            "Berrogüetto - O sacauntos",
+            "Ne Ladeiras - ¡Viva a musica!",
+            "Uxia - As fadas que te faden",
+            "Maestro Reverendo Orquesta Antabu",
+            "Chouteira - O jai-jai",
+            "Diplomaticos de Monte Alto e M. P",
+            "Na Lua - Noite de cans",
+            "Quinta do Bill - Voa, voa",
+            "Vitorino - Lua nacente",
+            "Fia na roca e Tucho 'Heredeiros'",
+            "Sergio Godinho - Pois e a vida",
+            "Tito Paris - Loucuras",
+            "Los Dore - O nenino negro",
+            "Emilio Cao - Maldita cidade",
+            "Manda truco",
+          ],
+        },
+        {
+          titulo: "A cantar con Xabarín Vol. 4",
+          artista: "Xabarín Club",
+          pistas: [
+            "La Marabunta - Inmersion",
+            "O Caiman do Rio Tea - Ven a baila",
+            "Xutos e Pontapes - Naquel bar",
+            "Pussycats - Non me amole",
+            "Despe e siga - Astro da bola",
+            "Kussondulola - Tase ben na radio",
+            "Victor Coyote - Pode ser....",
+            "Heredeiros da Crus - iscalle lura",
+            "Rui Veloso - A invencion do canto",
+            "Nacion Reixa - Loba, lava, luva",
+            "Sitiados - Ai ven ela",
+            "The Killer Barbies - Spiderman",
+            "As Amarguinhas - Video-clip",
+            "Andre Cabaço - Varina maxica",
+            "GNR - Corpos",
+            "O Vello Almorth - Lucia",
+            "Siniestro Total - O que ten cu, t",
+            "¡Inspector Tome!",
+          ],
+        },
+      ];
+    </script>
+    <!-- ============ FIN DE LA ZONA EDITABLE ============ -->
+
+    <h1>Música para Anxo</h1>
+
+    <div id="principal">
+      <input
+        id="buscar"
+        type="search"
+        placeholder="Buscar artista, disco o canción…"
+        autocomplete="off"
+      />
+      <div id="lista"></div>
+      <div id="sin-resultados" class="hidden">No hay resultados.</div>
+    </div>
+
+    <div id="detalle" class="hidden">
+      <button id="back">← Volver a los discos</button>
+      <h1 id="album-title"></h1>
+      <div id="tracks"></div>
+    </div>
+
+    <script>
+      const principal = document.getElementById("principal");
+      const lista = document.getElementById("lista");
+      const detalle = document.getElementById("detalle");
+      const buscar = document.getElementById("buscar");
+      const sinResultados = document.getElementById("sin-resultados");
+
+      // "Artista - Título", o solo el título si no hay artista
+      function etiqueta(d) {
+        return d.artista ? d.artista + " - " + d.titulo : d.titulo;
+      }
+
+      // Quita tildes y mayúsculas para comparar
+      function normalizar(texto) {
+        return texto
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase();
+      }
+
+      // Pinta el listado de discos (filtrado por la búsqueda)
+      function pintarLista() {
+        const q = normalizar(buscar.value.trim());
+        lista.innerHTML = "";
+        let visibles = 0;
+
+        discos.forEach((disco, i) => {
+          let pistaCoincidente = null;
+          if (q) {
+            const enDisco = normalizar(disco.artista + " " + disco.titulo).includes(q);
+            if (!enDisco) {
+              pistaCoincidente = disco.pistas.find((p) => normalizar(p).includes(q));
+              if (!pistaCoincidente) return;
+            }
+          }
+
+          visibles++;
+          const btn = document.createElement("button");
+          btn.className = disco.favorito ? "album fav" : "album";
+          const num = String(i + 1).padStart(2, "0");
+
+          const spanNum = document.createElement("span");
+          spanNum.className = "num";
+          spanNum.textContent = num;
+          btn.appendChild(spanNum);
+          const txt = document.createElement("span");
+          txt.className = "txt";
+          const nombre = document.createElement("span");
+          nombre.className = "nombre";
+          if (disco.artista) {
+            const art = document.createElement("span");
+            art.className = "artista";
+            art.textContent = disco.artista + " - ";
+            nombre.appendChild(art);
+          }
+          const tit = document.createElement("span");
+          tit.className = "titulo";
+          tit.textContent = disco.titulo;
+          nombre.appendChild(tit);
+          txt.appendChild(nombre);
+
+          if (pistaCoincidente) {
+            const hint = document.createElement("span");
+            hint.className = "hint";
+            hint.textContent = "Pista: " + pistaCoincidente;
+            txt.appendChild(hint);
+          }
+          btn.appendChild(txt);
+
+          btn.onclick = () => mostrarDisco(i);
+          lista.appendChild(btn);
+        });
+
+        sinResultados.classList.toggle("hidden", visibles > 0);
+      }
+
+      function mostrarDisco(i) {
+        const disco = discos[i];
+        document.getElementById("album-title").textContent =
+          disco.artista ? disco.titulo + " — " + disco.artista : disco.titulo;
+        document.getElementById("album-title").classList.toggle("fav", !!disco.favorito);
+        const tracks = document.getElementById("tracks");
+        tracks.innerHTML = "";
+        disco.pistas.forEach((p, n) => {
+          const row = document.createElement("div");
+          row.className = "track";
+          const spanNum = document.createElement("span");
+          spanNum.className = "num";
+          spanNum.textContent = n + 1;
+          const spanTxt = document.createElement("span");
+          spanTxt.textContent = p;
+          row.appendChild(spanNum);
+          row.appendChild(spanTxt);
+          tracks.appendChild(row);
+        });
+        principal.classList.add("hidden");
+        detalle.classList.remove("hidden");
+        window.scrollTo(0, 0);
+      }
+
+      document.getElementById("back").onclick = () => {
+        detalle.classList.add("hidden");
+        principal.classList.remove("hidden");
+      };
+
+      buscar.addEventListener("input", pintarLista);
+      pintarLista();
+    </script>
+  </body>
+</html>
