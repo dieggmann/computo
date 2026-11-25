@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="gl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cálculo de exceso de cómputo</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+        line-height: 1.6;
+        color: #333;
+    }
+
+    h1 {
+        color: #005a9c;
+        margin-bottom: 25px;
+    }
+
+    .grupo {
+        margin-bottom: 20px;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: bold;
+    }
+
+    input {
+        width: 100%;
+        max-width: 250px;
+        padding: 8px;
+        font-size: 1rem;
+        box-sizing: border-box;
+    }
+
+    button {
+        background-color: #005a9c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1rem;
+    }
+
+    button:hover {
+        background-color: #00457a;
+    }
+
+    #resultado {
+        display: none;
+        margin-top: 25px;
+        padding: 15px;
+        background-color: #f5f5f5;
+        border-left: 5px solid #005a9c;
+        border-radius: 4px;
+    }
+
+    details {
+        margin-top: 30px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        background-color: #fafafa;
+    }
+
+    summary {
+        cursor: pointer;
+        font-weight: bold;
+        color: #005a9c;
+    }
+
+    .disclaimer {
+        margin-top: 30px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .positivo {
+        color: #008000;
+    }
+
+    .negativo {
+        color: #c00000;
+    }
+</style>
+</head>
+<body>
+
+<h1>Cálculo de exceso de cómputo</h1>
+
+<div class="grupo">
+    <label for="anio">Ano</label>
+    <input type="number" id="anio" min="1900" max="3000" placeholder="Ex.: 2027">
+</div>
+
+<div class="grupo">
+    <label for="festivos">
+        Número de festivos que caen entre luns e venres
+    </label>
+    <input type="number" id="festivos" min="0" max="30" placeholder="Ex.: 14">
+</div>
+
+<button onclick="calcular()">Calcular</button>
+
+<div id="resultado"></div>
+
+<details>
+    <summary>Como se calculan os días de exceso de cómputo?</summary>
+
+    <p>
+        Para o persoal do SERGAS con quenda fixa de mañá ou tarde e quenda rotatoria simple,
+        a xornada anual é de 1.533 horas, o que equivale a 219 días de traballo de 7 horas.
+    </p>
+
+    <p>
+        O obxectivo desta aplicación é calcular cantos días che tocaría traballar nun ano e
+        comparalos con eses 219 días. Se o resultado é maior, a diferenza serían os teus días
+        de exceso de cómputo.
+    </p>
+
+    <p>Para facelo, o programa segue estes pasos:</p>
+
+    <ol>
+        <li>
+            Calcula cantos días laborables ten o ano, é dicir, cantos días caen entre luns e
+            venres. Esta cifra pode variar entre 259 e 262 días, dependendo do día da semana no
+            que comece o ano e de se é ou non bisiesto.
+        </li>
+        <li>
+            Resta os festivos que caen entre luns e venres (os que introduces na aplicación).
+        </li>
+        <li>
+            Resta os 22 días de vacacións e os 6 DLD ordinarios que corresponden a todo o persoal.
+            Non se teñen en conta as vacacións adicionais nin os DLD adicionais.
+        </li>
+    </ol>
+
+    <p>
+        O resultado son os días que, en teoría, deberías traballar ese ano.
+    </p>
+
+    <p>
+        Por último, compáranse cos 219 días de traballo anuais. Se o número é maior,
+        a diferenza son os días de exceso de cómputo que che corresponderían.
+    </p>
+
+</details>
+
+<div class="disclaimer">
+
+    <p>
+        Esta aplicación ten un carácter exclusivamente informativo e realiza unha estimación dos
+        días de exceso de cómputo a partir dos datos introducidos pola persoa usuaria. Os resultados
+        obtidos non teñen validez administrativa nin xurídica e poden non reflectir situacións
+        particulares non contempladas no cálculo.
+    </p>
+
+    <p>
+        Para coñecer o cómputo oficial da túa xornada e os días que che corresponden, debes consultar
+        coa túa xerencia, unidade de persoal ou cos servizos competentes do SERGAS.
+    </p>
+
+    <p>
+        O autor da aplicación non se fai responsable dos posibles erros nos cálculos nin do uso que
+        se faga da información proporcionada.
+    </p>
+
+</div>
+
+<script>
+function calcular() {
+
+    const anio = parseInt(document.getElementById("anio").value);
+    const festivos = parseInt(document.getElementById("festivos").value);
+
+    if (isNaN(anio) || isNaN(festivos)) {
+        alert("Debes introducir o ano e o número de festivos.");
+        return;
+    }
+
+    let diasLaborables = 0;
+
+    const data = new Date(anio, 0, 1);
+
+    while (data.getFullYear() === anio) {
+
+        const diaSemana = data.getDay();
+
+        if (diaSemana >= 1 && diaSemana <= 5) {
+            diasLaborables++;
+        }
+
+        data.setDate(data.getDate() + 1);
+    }
+
+    const VACACIONS = 22;
+    const DLD = 6;
+    const XORNADA_ANUAL = 219;
+
+    const diasTraballo =
+        diasLaborables -
+        festivos -
+        VACACIONS -
+        DLD;
+
+    const excesoComputo =
+        diasTraballo -
+        XORNADA_ANUAL;
+
+    document.getElementById("resultado").style.display = "block";
+
+    const claseResultado =
+        excesoComputo >= 0 ? "positivo" : "negativo";
+
+    document.getElementById("resultado").innerHTML = `
+        <p><strong>Días laborables do ano:</strong> ${diasLaborables}</p>
+        <p><strong>Festivos entre semana:</strong> ${festivos}</p>
+        <p><strong>Vacacións ordinarias:</strong> ${VACACIONS}</p>
+        <p><strong>DLD ordinarios:</strong> ${DLD}</p>
+        <p><strong>Días teóricos de traballo:</strong> ${diasTraballo}</p>
+
+        <hr>
+
+        <p class="${claseResultado}" style="font-size:1.2rem;">
+            <strong>
+                Ao ano ${anio} correspóndenlle ${excesoComputo} día(s) de exceso de cómputo.
+            </strong>
+        </p>
+    `;
+}
+</script>
+
+</body>
+</html>
